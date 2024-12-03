@@ -33,12 +33,12 @@ public class Servidor extends JFrame implements Runnable {
     public Servidor() {
         setTitle("Servidor - Chat");
         txtmensajes = new JTextArea();
-        txtmensajes.setBounds(10, 30, 400, 300);
+        txtmensajes.setBounds(10, 30, 500, 400);
         txtmensajes.setEditable(false);
         add(txtmensajes);
 
         setLayout(null);
-        setSize(450, 400);
+        setSize(550, 500);
         setVisible(true);
 
         // Listener para manejar el cierre de la ventana
@@ -80,21 +80,41 @@ public class Servidor extends JFrame implements Runnable {
             txtmensajes.append("Servidor iniciado. Esperando conexiones...\n");
 
             while (true) {
+
                 Socket sc = servidor.accept();
                 DataInputStream in = new DataInputStream(sc.getInputStream());
                 DataOutputStream out = new DataOutputStream(sc.getOutputStream());
 
-                synchronized (clientOutputs) {
-                    clientOutputs.add(out);
+                // Obtener el nombre del cliente
+                String nombreCliente = in.readUTF();
+                clientNames.add(nombreCliente);
+                clientOutputs.add(out);
+
+                txtmensajes.append(nombreCliente + " se ha conectado.\n");
+
+                // Escuchar mensajes de los clientes
+                while (true) {
+
+                    String mensaje = in.readUTF();
+
+                    // Mostrar en el servidor el mensaje del cliente
+                    txtmensajes.append(nombreCliente + " " + mensaje + "\n");
+
+                    // Enviar el mensaje a todos los clientes conectados
+                    /*
+                    for (DataOutputStream clientOut : clientOutputs) {
+                        clientOut.writeUTF(nombreCliente + ": " + mensaje);
+                    }
+                    */
+
                 }
 
-                Thread clientHandler = new Thread(() -> handleClient(sc, in, out));
-                clientHandler.start();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            txtmensajes.append("Error al conectar con el cliente: " + e.getMessage() + "\n");
         }
     }
+
 
     //endregion
 
@@ -104,8 +124,8 @@ public class Servidor extends JFrame implements Runnable {
      * Maneja la comunicación con un cliente conectado.
      *
      * @param clientSocket Socket del cliente.
-     * @param in          Flujo de entrada para recibir datos del cliente.
-     * @param out         Flujo de salida para enviar datos al cliente.
+     * @param in           Flujo de entrada para recibir datos del cliente.
+     * @param out          Flujo de salida para enviar datos al cliente.
      */
     private void handleClient(Socket clientSocket, DataInputStream in, DataOutputStream out) {
         String nombreCliente = "";
