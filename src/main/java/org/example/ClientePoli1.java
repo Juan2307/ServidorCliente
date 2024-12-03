@@ -9,169 +9,160 @@ import java.awt.event.WindowEvent;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.Socket;  // Java .net
+import java.net.Socket;
 import java.util.Random;
 
-/**
- * Clase que representa un cliente de chat en una aplicación de mensajería.
- * Esta clase extiende JFrame e implementa ActionListener y Runnable para
- * gestionar la interfaz de usuario y la comunicación con el servidor de chat.
- */
 public class ClientePoli1 extends JFrame implements ActionListener, Runnable {
 
-    //region Private Fields
-    private JTextField txtmensaje; // Campo para ingresar mensajes a enviar
-    private JButton btnenviar, btnsalir; // Botones para enviar mensajes y salir del chat
-    private JTextArea txtmensajes; // Área de texto para mostrar mensajes del chat
+    private JTextField txtmensaje;
+    private JButton btnenviar, btnsalir;
+    private JTextArea txtmensajes;
 
-    private Socket sc = null; // Socket para la conexión con el servidor
+    private Socket sc = null;
 
-    private String ip; // Dirección IP del servidor
-    private int puerto; // Puerto de conexión al servidor
-    private String nombre; // Nombre del usuario
-    private DataOutputStream out; // Stream para enviar datos al servidor
-    private Random random; // Para generar un número aleatorio para el nombre del usuario
-    //endregion
+    private String ip;
+    private int puerto;
+    private String nombre;
+    private DataOutputStream out;
+    private Random random;
 
-    //region Constructor
-    /**
-     * Constructor de la clase ClientePoli1. Inicializa la interfaz gráfica y la conexión al servidor.
-     *
-     * @param ip Dirección IP del servidor al que se conecta.
-     * @param puerto Puerto de conexión al servidor.
-     * @param nombre Nombre del usuario. Si está vacío, se generará un nombre aleatorio.
-     */
     public ClientePoli1(String ip, int puerto, String nombre) {
         this.ip = ip;
         this.puerto = puerto;
 
-        // Asignar nombre aleatorio si está vacío
         this.nombre = (nombre == null || nombre.isEmpty()) ? generarNombreAleatorio() : nombre;
 
-        setTitle(this.nombre + " - Chat Cliente #1"); // Título de la ventana
-        setLayout(new BorderLayout()); // Configuración del layout
+        setTitle(this.nombre + " - Chat Cliente #1");
+        setLayout(new BorderLayout());
 
-        // Configurar JTextArea para mostrar mensajes
         txtmensajes = new JTextArea();
-        txtmensajes.setEditable(false); // El área de mensajes no es editable
-        txtmensajes.setLineWrap(true); // Permitir el ajuste de línea
-        JScrollPane scrollMensajes = new JScrollPane(txtmensajes); // Añadir scroll al área de texto
-        add(scrollMensajes, BorderLayout.CENTER); // Añadir al centro de la ventana
+        txtmensajes.setEditable(false);
+        txtmensajes.setLineWrap(true);
+        JScrollPane scrollMensajes = new JScrollPane(txtmensajes);
+        add(scrollMensajes, BorderLayout.CENTER);
 
-        // Configurar JTextField y botones
         JPanel panelInferior = new JPanel(new BorderLayout());
-        txtmensaje = new JTextField(); // Campo para ingresar mensajes
-        panelInferior.add(txtmensaje, BorderLayout.CENTER); // Añadir al panel inferior
+        txtmensaje = new JTextField();
+        panelInferior.add(txtmensaje, BorderLayout.CENTER);
 
-        btnenviar = new JButton("Enviar"); // Botón de enviar
-        btnenviar.addActionListener(this); // Agregar ActionListener
-        panelInferior.add(btnenviar, BorderLayout.EAST); // Añadir al panel
+        btnenviar = new JButton("Procesar");
+        btnenviar.addActionListener(this);
+        panelInferior.add(btnenviar, BorderLayout.EAST);
 
-        btnsalir = new JButton("Salir"); // Botón de salir
-        btnsalir.addActionListener(this); // Agregar ActionListener
-        add(btnsalir, BorderLayout.SOUTH); // Añadir al sur de la ventana
+        btnsalir = new JButton("Salir");
+        btnsalir.addActionListener(this);
+        add(btnsalir, BorderLayout.SOUTH);
 
-        add(panelInferior, BorderLayout.NORTH); // Añadir panel inferior al norte de la ventana
+        add(panelInferior, BorderLayout.NORTH);
 
-        setSize(500, 400); // Configurar tamaño de la ventana
-        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // No cerrar la aplicación al cerrar la ventana
-        setVisible(true); // Hacer visible la ventana
+        setSize(500, 400);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        setVisible(true);
 
-        // Listener para desconectar al cerrar la ventana
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                desconectar(); // Desconectar al cerrar
+                desconectar();
             }
         });
 
-        Thread hilo = new Thread(this); // Crear un hilo para escuchar mensajes del servidor
-        hilo.start(); // Iniciar el hilo
-    }
-    //endregion
+        // Mensaje por defecto y menú inicial
+        mostrarMenu();
 
-    //region Public Methods
-    /**
-     * Método ejecutado por el hilo para escuchar mensajes del servidor.
-     */
+        Thread hilo = new Thread(this);
+        hilo.start();
+    }
+
     @Override
     public void run() {
         try {
-            sc = new Socket(ip, puerto); // Crear socket y conectar al servidor
-            DataInputStream in = new DataInputStream(sc.getInputStream()); // Stream para recibir datos
-            out = new DataOutputStream(sc.getOutputStream()); // Stream para enviar datos
+            sc = new Socket(ip, puerto);
+            DataInputStream in = new DataInputStream(sc.getInputStream());
+            out = new DataOutputStream(sc.getOutputStream());
 
-            // Enviar el nombre del cliente al servidor
             out.writeUTF(nombre);
 
-            // Escuchar mensajes del servidor
             while (true) {
-                String mensaje = in.readUTF(); // Leer mensajes del servidor
-                txtmensajes.append(mensaje + "\n"); // Mostrar mensaje en el área de texto
+                String mensaje = in.readUTF();
+                txtmensajes.append(mensaje + "\n");
             }
         } catch (IOException e) {
-            txtmensajes.append("Conexión cerrada.\n"); // Mostrar mensaje de cierre de conexión
+            txtmensajes.append("Conexión cerrada.\n");
         }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == btnsalir) {
-            desconectar(); // Desconectar si se presiona el botón salir
+            desconectar();
         } else if (e.getSource() == btnenviar) {
-            enviarMensaje(); // Enviar mensaje si se presiona el botón enviar
+            procesarComando();
         }
     }
-    //endregion
 
-    //region Private Methods
-    /**
-     * Envía un mensaje al servidor. Si el mensaje contiene "chao", se desconecta del chat.
-     */
-    private void enviarMensaje() {
-        String mensaje = txtmensaje.getText().trim(); // Obtener texto del campo de mensaje
-        if (!mensaje.isEmpty()) { // Verificar que el mensaje no esté vacío
+    private void procesarComando() {
+        String mensaje = txtmensaje.getText().trim().toLowerCase();
+        if (!mensaje.isEmpty()) {
             try {
-                // Detectar "chao" en cualquier parte del mensaje y desconectar
-                if (mensaje.toLowerCase().contains("chao")) {
-                    desconectar(); // Desconectar si el mensaje contiene "chao"
+                if (mensaje.equals("5")) {
+                    txtmensajes.append("Saliendo del sistema...\n");
+                    desconectar();
+                } else if (mensaje.equals("1")) {
+                    txtmensajes.append("Opción seleccionada: Insertar un empleado.\n");
+                    // Aquí iría la lógica para insertar un empleado
+                    out.writeUTF("INSERTAR_EMPLEADO");
+                } else if (mensaje.equals("2")) {
+                    txtmensajes.append("Opción seleccionada: Actualizar los datos de un empleado.\n");
+                    // Aquí iría la lógica para actualizar un empleado
+                    out.writeUTF("ACTUALIZAR_EMPLEADO");
+                } else if (mensaje.equals("3")) {
+                    txtmensajes.append("Opción seleccionada: Consultar un empleado.\n");
+                    // Aquí iría la lógica para consultar un empleado
+                    out.writeUTF("CONSULTAR_EMPLEADO");
+                } else if (mensaje.equals("4")) {
+                    txtmensajes.append("Opción seleccionada: Borrar un empleado.\n");
+                    // Aquí iría la lógica para borrar un empleado
+                    out.writeUTF("BORRAR_EMPLEADO");
                 } else {
-                    out.writeUTF(nombre + ": " + mensaje); // Enviar mensaje al servidor
-                    txtmensaje.setText(""); // Limpiar el campo de mensaje
+                    txtmensajes.append("Opción inválida. Por favor, intenta nuevamente.\n");
                 }
+                txtmensaje.setText("");
             } catch (IOException ex) {
-                txtmensajes.append("Error al enviar el mensaje.\n"); // Mostrar error al enviar
+                txtmensajes.append("Error al procesar el comando.\n");
             }
         }
     }
 
-    /**
-     * Desconecta al cliente del servidor y cierra la ventana.
-     */
+    private void mostrarMenu() {
+        txtmensajes.append("Bienvenido al Sistema de Gestión de Empleados.\n");
+        txtmensajes.append("Por favor, selecciona una opción:\n");
+        txtmensajes.append("1. Insertar -> Insertar un empleado en la base de datos.\n");
+        txtmensajes.append("2. Update -> Actualizar los datos de un empleado en la base de datos.\n");
+        txtmensajes.append("3. Select -> Consultar un empleado en la base de datos.\n");
+        txtmensajes.append("4. Delete -> Borrar un empleado de la base de datos (y agregarlo a históricos).\n");
+        txtmensajes.append("5. Salir del sistema.\n");
+        txtmensajes.append("-----------------------------------------------------------------------------------------------------------------\n\n");
+    }
+
     private void desconectar() {
         try {
             if (out != null) {
-                out.writeUTF(nombre + " abandonó el chat."); // Notificar al servidor que el cliente se desconecta
+                out.writeUTF(nombre + " abandonó el sistema.");
             }
             if (sc != null && !sc.isClosed()) {
-                sc.close(); // Cerrar socket
+                sc.close();
             }
-            dispose(); // Cerrar la ventana
+            dispose();
         } catch (IOException e) {
-            txtmensajes.append("Error al desconectar: " + e.getMessage() + "\n"); // Mostrar error al desconectar
+            txtmensajes.append("Error al desconectar: " + e.getMessage() + "\n");
         }
     }
 
-    /**
-     * Genera un nombre aleatorio para el usuario en caso de que no se proporcione uno.
-     *
-     * @return Nombre aleatorio generado.
-     */
     private String generarNombreAleatorio() {
-        random = new Random(); // Inicializar Random
-        int numeroAleatorio = random.nextInt(1000); // Genera un número aleatorio entre 0 y 999
-        return "UsuarioDesconocido" + numeroAleatorio; // Retorna nombre con número aleatorio
+        random = new Random();
+        int numeroAleatorio = random.nextInt(1000);
+        return "UsuarioDesconocido" + numeroAleatorio;
     }
-    //endregion
 
 }
+

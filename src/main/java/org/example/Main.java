@@ -14,14 +14,14 @@ public class Main {
      * @param args Argumentos de línea de comandos.
      */
     public static void main(String[] args) {
+
         // Iniciar el servidor
         new Servidor();  // Esto abrirá la ventana de la interfaz y comenzará a escuchar conexiones
 
         // Configuración de los clientes
         new ConfiguracionClientePoli1();     // Configuración para ClientePoli1
-        new ConfiguracionClientePoli2(); // Configuración para ClientePoli2
+
     }
 
     //endregion
 }
-
