@@ -24,6 +24,7 @@ public class ConfiguracionClientePoli1 extends JFrame implements ActionListener 
      * Constructor que inicializa la ventana de configuración del Cliente #1.
      */
     public ConfiguracionClientePoli1() {
+
         // Crear campos y botón
         txtIP = new JTextField("127.0.0.1"); // IP predeterminada (localhost)
         txtPuerto = new JTextField("5000");  // Puerto predeterminado
@@ -56,6 +57,7 @@ public class ConfiguracionClientePoli1 extends JFrame implements ActionListener 
         setTitle("Configuración del Cliente #1");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
+
     }
 
     //endregion
@@ -69,7 +71,9 @@ public class ConfiguracionClientePoli1 extends JFrame implements ActionListener 
      */
     @Override
     public void actionPerformed(ActionEvent e) {
+
         if (e.getSource() == btnConectar) {
+
             // Obtener datos de configuración
             String ip = txtIP.getText();
             int puerto = Integer.parseInt(txtPuerto.getText());
@@ -80,7 +84,9 @@ public class ConfiguracionClientePoli1 extends JFrame implements ActionListener 
 
             // Cerrar la ventana de configuración
             this.dispose();
+
         }
+
     }
 
     //endregion
